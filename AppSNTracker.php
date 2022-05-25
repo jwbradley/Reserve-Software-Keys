@@ -22,16 +22,30 @@ if (!$db_selected) {
 	die('Can\'t use database: ' . mysql_error());
 }
 
-$sql1 = "SELECT `IntNum`, `SerialNumber`, `UserID`, `First Name`, `Last Name`, `CheckedOut`, `AppVer`, `CompanyName`, `Status` 
-           FROM `serialdb`.`AppSN` where `UserID` =  '{$logUser}'  "; /* Query to get existing records  */
+ /* Query to get existing records  */
+$sql1 = "SELECT `IntNum`, 
+                `SerialNumber`, 
+                `UserID`, 
+                `First Name`, 
+                `Last Name`, 
+                `CheckedOut`, 
+                `AppVer`, 
+                `CompanyName`, 
+                `Status` 
+           FROM `serialdb`.`AppSN` 
+          where `UserID` =  '{$logUser}'  ";
 
 $Check2 = mysql_query($sql1);
 $giveMeData = mysql_fetch_array($Check2);
 
 if (!$giveMeData)  {
-	/* Does user already have a checkout?  */
-	$query = 'select count(*) as recs from `serialdb`.`AppSN` where (( UserID is Null or UserID = \'\' ) 
-	             and ( IntNum is not Null ) and expiredate < current_date ) or (UserID is not Null and Status <> \'A\'   )'; 
+	/* Does the user already have a software key checked out? */
+	$query = 'select count(*) as recs 
+	            from `serialdb`.`AppSN` 
+	           where (( UserID is Null or UserID = \'\' ) 
+	             and ( IntNum is not Null ) 
+	             and expiredate < current_date ) 
+	              or (UserID is not Null and Status <> \'A\' )'; 
 	$Check1 = mysql_query($query);
 	$availablerecords = mysql_fetch_array($Check1);
 	$newUser = 'Yes';
@@ -48,7 +62,7 @@ if (!$giveMeData)  {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>BPS Hosting App Serial Number Check-out</title>
+  <title>App Key Check-out</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
@@ -69,16 +83,27 @@ if (!$giveMeData)  {
 
 <?php
 if ( ($newUser == 'Yes') && ($noRecords =='No')  )  {
-	/* Get next Software ready for checkout.  */
-	$sql3 = 'select min(IntNum) as intrec, SerialNumber as serial, AppVer as ver, CompanyName as cn from `serialdb`.`AppSN` 
-	          where (( UserID is Null or UserID = \'\' ) and  ( IntNum is not Null ) )
+	// Get next Software Key ready for checkout. 
+	$sql3 = 'select min(IntNum) as intrec, 
+	                SerialNumber as serial, 
+	                AppVer as ver, 
+	                CompanyName as cn 
+	           from `serialdb`.`AppSN` 
+	          where (( UserID is Null or UserID = \'\' ) and ( IntNum is not Null ) )
                or (UserID is not Null and Status <> \'A\' and expiredate < current_date  )';  
 
 	$execute = mysql_query($sql3);
 	$IntNum = mysql_fetch_array($execute);
 
-	$sql2 = "update `serialdb`.`AppSN` set UserID = '{$logUser}', `First Name` = '{$F_Name}', `Last Name` = '{$L_Name}', CheckedOut = NOW(), status = 'A', expiredate = '".date("Y-m-d", strtotime("+ 1 day"))."'
-            where IntNum = ".$IntNum["intrec"].""; /* Checkout Serial Number  */
+	/* Checkout Software Key   */
+	$sql2 = "update `serialdb`.`AppSN` 
+	            set UserID = '{$logUser}', 
+	                `First Name` = '{$F_Name}', 
+	                `Last Name` = '{$L_Name}', 
+	                CheckedOut = NOW(), 
+	                status = 'A', 
+	                expiredate = '".date("Y-m-d", strtotime("+ 1 day"))."'
+            where IntNum = ".$IntNum["intrec"].""; 
   $hold = mysql_query($sql2);
 
 	$giveMeData["UserID"] = $logUser;
@@ -90,7 +115,7 @@ if ( ($newUser == 'Yes') && ($noRecords =='No')  )  {
 }
 
 if (  ($noRecords =='Yes') ) {
-	echo '<h1>All Available App Serial Number Have Already Been Assigned.</h1>';
+	echo '<h1>All Available App Key Have Already Been Assigned.</h1>';
 } else {
 	if ($giveMeData["AppVer"] == '9.0.x.x') {
 		$link = 'AppVer-9.0.exe'; // Executable name for download
@@ -98,7 +123,7 @@ if (  ($noRecords =='Yes') ) {
 		$link = 'AppVer-8.5.exe'; // Executable name for download
 	}
 
-	echo '<h2>App Serial Number Details</h2>';
+	echo '<h2>Application Key Details</h2>';
 	echo '<div class="form-group">';
 	echo '  <label for="userid">User ID:</label>';
 	echo '  <input type="text" class="form-control" id="userid" name="userid" value="'.$giveMeData["UserID"].'" readonly>';
