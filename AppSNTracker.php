@@ -29,8 +29,9 @@ $Check2 = mysql_query($sql1);
 $giveMeData = mysql_fetch_array($Check2);
 
 if (!$giveMeData)  {
+	/* Does user already have a checkout?  */
 	$query = 'select count(*) as recs from `serialdb`.`AppSN` where (( UserID is Null or UserID = \'\' ) 
-	             and ( IntNum is not Null ) and expiredate < current_date ) or (UserID is not Null and Status <> \'A\'   )'; // Does user already have a checkout?
+	             and ( IntNum is not Null ) and expiredate < current_date ) or (UserID is not Null and Status <> \'A\'   )'; 
 	$Check1 = mysql_query($query);
 	$availablerecords = mysql_fetch_array($Check1);
 	$newUser = 'Yes';
@@ -68,9 +69,10 @@ if (!$giveMeData)  {
 
 <?php
 if ( ($newUser == 'Yes') && ($noRecords =='No')  )  {
+	/* Get next Software ready for checkout.  */
 	$sql3 = 'select min(IntNum) as intrec, SerialNumber as serial, AppVer as ver, CompanyName as cn from `serialdb`.`AppSN` 
 	          where (( UserID is Null or UserID = \'\' ) and  ( IntNum is not Null ) )
-               or (UserID is not Null and Status <> \'A\' and expiredate < current_date  )';  // Get next Serial ready for checkout. 
+               or (UserID is not Null and Status <> \'A\' and expiredate < current_date  )';  
 
 	$execute = mysql_query($sql3);
 	$IntNum = mysql_fetch_array($execute);
